@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1c1612">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mise en Place">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Mise en Place</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#f5efe4; --paper-deep:#ebe2d2; --ink:#1c1612; --ink-soft:#4a3f36; --ink-faint:#8a7a6b; --terracotta:#b3441e; --terracotta-deep:#8a2f13; --olive:#5a6a3a; --rule:#d4c8b3; --rule-strong:#a89580; --warning:#b8860b; --error:#b3361e; --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; font-size: 16px; line-height: 1.5; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background-image: radial-gradient(circle at 20% 10%, rgba(179, 68, 30, 0.04) 0%, transparent 40%), radial-gradient(circle at 80% 90%, rgba(90, 106, 58, 0.05) 0%, transparent 40%); background-attachment: fixed; padding-top: var(--safe-top); }
+  .shell { max-width: 720px; margin: 0 auto; padding: 20px 16px calc(100px + var(--safe-bottom)); position: relative; }
+
+  .mh { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px; position: relative; }
+  .mh::after { content: ''; position: absolute; bottom: -6px; left: 0; right: 0; height: 1px; background: var(--ink); }
+  .mt { display: flex; justify-content: space-between; align-items: baseline; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; gap: 8px; }
+  h1 { font-family: 'Fraunces', serif; font-weight: 900; font-style: italic; font-size: clamp(36px, 10vw, 54px); line-height: 0.95; letter-spacing: -0.03em; color: var(--ink); }
+  .sub { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
+
+  .sync { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--olive); flex-shrink: 0; }
+  .dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
+  .dot.error { background: var(--error); }
+  .dot.offline { background: var(--ink-faint); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .gear { background: none; border: 1px solid var(--rule); padding: 6px 10px; min-height: 28px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); cursor: pointer; margin-left: 6px; }
+  .gear:hover, .gear:active { color: var(--ink); border-color: var(--ink); }
+
+  .tb { display: flex; margin-bottom: 24px; border-bottom: 1px solid var(--rule); }
+  .t { flex: 1; background: none; border: none; padding: 14px 8px; min-height: 48px; font-family: 'Inter Tight', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); cursor: pointer; position: relative; }
+  .t.act { color: var(--ink); }
+  .t.act::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: var(--terracotta); }
+  .t .ct { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: var(--ink); color: var(--paper); padding: 1px 6px; border-radius: 2px; margin-left: 4px; font-weight: 500; }
+  .t.act .ct { background: var(--terracotta); }
+
+  .sh { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; gap: 12px; }
+  .sh h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); }
+  .mt2 { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .b { font-family: 'Inter Tight', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 13px 18px; min-height: 46px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s, color .15s, transform .1s; }
+  .b:active { transform: scale(0.98); }
+  .bp { background: var(--ink); color: var(--paper); }
+  .bp:hover, .bp:active { background: var(--terracotta); }
+  .ba { background: var(--terracotta); color: var(--paper); }
+  .ba:hover, .ba:active { background: var(--terracotta-deep); }
+  .bg { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .bg:hover, .bg:active { background: var(--ink); color: var(--paper); }
+  .bs { padding: 9px 14px; font-size: 11px; min-height: 38px; }
+  .bb { width: 100%; }
+
+  .ab { margin-bottom: 14px; }
+  .ls { display: flex; flex-direction: column; }
+  .c { background: var(--paper); border: 1px solid var(--rule); border-bottom: none; padding: 16px; cursor: pointer; }
+  .c:last-child { border-bottom: 1px solid var(--rule); }
+  .c:hover, .c:active { background: var(--paper-deep); }
+  .cr { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .nm { font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; letter-spacing: -0.01em; flex: 1; color: var(--ink); min-width: 0; word-wrap: break-word; }
+  .pr { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: var(--terracotta-deep); white-space: nowrap; }
+  .mi { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 4px; }
+
+  .em { text-align: center; padding: 40px 20px; border: 1px dashed var(--rule-strong); background: rgba(255,255,255,0.3); }
+  .ei { font-family: 'Fraunces', serif; font-style: italic; font-size: 48px; color: var(--rule-strong); margin-bottom: 12px; }
+  .em h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px; margin-bottom: 6px; color: var(--ink); }
+  .em p { color: var(--ink-soft); font-size: 14px; max-width: 320px; margin: 0 auto 16px; }
+
+  .mw { position: fixed; inset: 0; background: rgba(28, 22, 18, 0.45); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; z-index: 100; }
+  .md { background: var(--paper); width: 100%; max-width: 560px; max-height: calc(92vh - var(--safe-top)); overflow-y: auto; border-top: 4px solid var(--terracotta); padding-bottom: var(--safe-bottom); -webkit-overflow-scrolling: touch; }
+  @media (min-width: 640px) {
+    .mw { align-items: center; padding: 20px; }
+    .md { border-top: none; border: 1px solid var(--ink); border-top: 4px solid var(--terracotta); }
+  }
+  .mhd { padding: 18px 18px 14px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+  .mhd h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px; letter-spacing: -0.02em; color: var(--ink); }
+  .mx { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--ink-soft); line-height: 1; padding: 8px 12px; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .mb { padding: 18px; }
+  .mf { padding: 14px 18px calc(14px + var(--safe-bottom)); border-top: 1px solid var(--rule); display: flex; gap: 8px; background: var(--paper-deep); position: sticky; bottom: 0; }
+  .mf .b { flex: 1; }
+
+  .fl { margin-bottom: 16px; }
+  .r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .r3 { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; font-weight: 600; }
+  input, select, textarea { width: 100%; background: transparent; border: none; border-bottom: 1.5px solid var(--ink); padding: 10px 0; font-family: 'Inter Tight', sans-serif; font-size: 16px; color: var(--ink); outline: none; border-radius: 0; -webkit-appearance: none; appearance: none; }
+  textarea { resize: vertical; font-family: 'JetBrains Mono', monospace; font-size: 13px; min-height: 60px; word-break: break-all; }
+  input:focus, select:focus, textarea:focus { border-bottom-color: var(--terracotta); }
+  select { background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231c1612' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; padding-right: 24px; }
+  input[type="number"] { font-family: 'JetBrains Mono', monospace; }
+  .hp { font-size: 12px; color: var(--ink-faint); margin-top: 6px; font-style: italic; font-family: 'Fraunces', serif; line-height: 1.4; }
+  .dv { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; margin-top: 28px; margin-bottom: 12px; border-top: 1px solid var(--rule); padding-top: 20px; color: var(--ink); }
+  .dv .ic2 { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); font-weight: 500; letter-spacing: 0.1em; }
+
+  .ir { background: var(--paper-deep); border-left: 3px solid var(--terracotta); padding: 12px; margin-bottom: 8px; }
+  .ih { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
+  .in2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; color: var(--ink); flex: 1; min-width: 0; word-wrap: break-word; }
+  .ix { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 22px; line-height: 1; padding: 4px 10px; min-width: 36px; min-height: 36px; }
+  .ix:active { color: var(--terracotta); }
+  .ifg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .ifg label { font-size: 9px; margin-bottom: 2px; }
+  .ifg input, .ifg select { font-size: 14px; padding: 6px 0; border-bottom-width: 1px; }
+
+  .hr2 { background: var(--ink); color: var(--paper); padding: 24px 22px; margin: -10px -16px 22px; position: relative; overflow: hidden; }
+  .hr2::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: var(--terracotta); border-radius: 50%; opacity: 0.2; }
+  .hr2 h2 { font-family: 'Fraunces', serif; font-style: italic; font-weight: 700; font-size: clamp(28px, 8vw, 40px); line-height: 1; letter-spacing: -0.03em; position: relative; margin-bottom: 8px; color: var(--paper); word-wrap: break-word; }
+  .tg { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--paper-deep); opacity: 0.8; }
+  .bk { background: none; border: none; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; padding: 8px 0; margin-bottom: 8px; min-height: 36px; }
+  .bk:active { color: var(--terracotta); }
+  .et { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 18px; color: var(--ink); }
+
+  .yi { background: var(--terracotta); color: var(--paper); padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .yi .tg { color: var(--paper); opacity: 0.85; }
+  .yv { font-family: 'Fraunces', serif; font-weight: 700; font-style: italic; font-size: clamp(22px, 6vw, 28px); letter-spacing: -0.02em; color: var(--paper); }
+
+  .sc { background: var(--paper-deep); border: 1px solid var(--rule); padding: 14px; margin-bottom: 22px; }
+  .sci { display: grid; grid-template-columns: 1fr 90px; gap: 8px; margin-top: 6px; }
+  .qb { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .qbn { background: var(--paper); border: 1px solid var(--rule); padding: 7px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--ink); min-height: 36px; }
+  .qbn.act { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .sb { display: flex; gap: 8px; margin-top: 12px; }
+  .sb .b { flex: 1; }
+
+  .ct2 { background: var(--paper); border: 1px solid var(--rule); margin-bottom: 18px; }
+  .rw { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 14px; border-bottom: 1px solid var(--rule); font-family: 'JetBrains Mono', monospace; font-size: 13px; gap: 12px; }
+  .rw:last-child { border-bottom: none; }
+  .rw .nm { font-family: 'Inter Tight', sans-serif; color: var(--ink); font-weight: 500; flex: 1; min-width: 0; word-wrap: break-word; }
+  .rw .qy { color: var(--ink-faint); font-size: 11px; margin-top: 4px; }
+  .rw .am { font-weight: 600; color: var(--terracotta-deep); white-space: nowrap; }
+  .rw.idt { padding-left: 28px; background: var(--paper-deep); }
+  .rw.sbt { background: var(--paper-deep); font-weight: 600; }
+  .rw.sbt .nm { font-weight: 700; }
+  .rw.tot { background: var(--ink); color: var(--paper); padding: 16px; }
+  .rw.tot .nm { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: var(--paper); }
+  .rw.tot .am { color: var(--paper); font-size: 18px; }
+  .rw.sl { background: var(--olive); color: var(--paper); padding: 14px; }
+  .rw.sl .nm { font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px; color: var(--paper); }
+  .rw.sl .am { color: var(--paper); }
+  .ss { background: var(--paper-deep); border: 1px solid var(--rule); padding: 12px 14px; margin-bottom: 20px; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .ss .lb { color: var(--ink-soft); }
+  .ss .vl { font-weight: 600; color: var(--olive); }
+
+  .pi { max-height: 280px; overflow-y: auto; border: 1px solid var(--rule); margin-top: 8px; -webkit-overflow-scrolling: touch; }
+  .pir { padding: 12px; border-bottom: 1px solid var(--rule); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 56px; }
+  .pir:last-child { border-bottom: none; }
+  .pir:hover, .pir:active { background: var(--paper-deep); }
+  .pir.ad { background: var(--paper-deep); opacity: 0.5; cursor: default; }
+  .pn { font-family: 'Fraunces', serif; font-weight: 500; font-size: 15px; color: var(--ink); }
+  .pm { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
+
+  .fab { position: fixed; bottom: calc(20px + var(--safe-bottom)); right: 20px; background: var(--terracotta); color: var(--paper); width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 28px; font-weight: 300; cursor: pointer; box-shadow: 0 8px 24px rgba(28, 22, 18, 0.25); z-index: 50; display: flex; align-items: center; justify-content: center; }
+  .fab:active { background: var(--terracotta-deep); transform: scale(0.95); }
+  @media (min-width: 720px) { .fab { right: calc(50% - 360px + 20px); } }
+
+  .ts { position: fixed; bottom: calc(100px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 12px 20px; font-size: 13px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; z-index: 200; max-width: calc(100vw - 40px); text-align: center; }
+  .ts.error { background: var(--error); }
+
+  .pi2 { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--paper-deep); color: var(--ink-soft); padding: 2px 6px; margin-right: 4px; font-weight: 600; }
+  .pi2.lt { background: rgba(255,255,255,0.2); color: var(--paper); }
+
+  .ac { display: flex; gap: 8px; margin-top: 28px; flex-wrap: wrap; }
+  .ac > .b:not(.bs) { flex: 1; min-width: 120px; }
+
+  .est { background: var(--paper-deep); border: 1px solid var(--rule); padding: 10px 14px; margin-top: 8px; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+  .est .v { font-weight: 600; color: var(--terracotta-deep); }
+
+  /* Setup & loading screens */
+  .setup-page { max-width: 480px; margin: 24px auto; padding: 0 4px; }
+  .setup-page h2 { font-family: 'Fraunces', serif; font-weight: 700; font-style: italic; font-size: clamp(28px, 8vw, 36px); letter-spacing: -0.02em; margin-bottom: 12px; color: var(--ink); }
+  .setup-page p { color: var(--ink-soft); margin-bottom: 18px; font-size: 15px; line-height: 1.5; }
+  .setup-note { font-size: 12px; color: var(--ink-faint); margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rule); font-style: italic; font-family: 'Fraunces', serif; }
+
+  .loading-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; text-align: center; padding: 20px; }
+  .loading-page .lt2 { font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; color: var(--ink-soft); }
+  .sp { width: 32px; height: 32px; border: 2px solid var(--rule); border-top-color: var(--terracotta); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hd { display: none !important; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SETUP -->
+  <div id="view-setup" class="hd">
+    <div class="setup-page">
+      <h2>One-time setup</h2>
+      <p>To connect this device to your recipe sheet, paste the two values from your Apps Script deployment.</p>
+      <div class="fl">
+        <label>Apps Script Web App URL</label>
+        <textarea id="su-url" rows="3" placeholder="https://script.google.com/macros/s/AKfy.../exec"></textarea>
+        <div class="hp">From Apps Script → Deploy → Web app URL.</div>
+      </div>
+      <div class="fl">
+        <label>Secret token</label>
+        <textarea id="su-token" rows="2" placeholder="The token you put into your Apps Script code"></textarea>
+        <div class="hp">The same value as the TOKEN constant in your Apps Script.</div>
+      </div>
+      <button class="b bp bb" id="su-go" type="button">Connect</button>
+      <p class="setup-note">Both values are stored only on this device. You'll need to enter them again on other devices (phone, tablet, etc.).</p>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="view-loading" class="loading-page hd">
+    <div class="sp"></div>
+    <div class="lt2">Reading the ledger…</div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="view-app" class="hd">
+    <header class="mh">
+      <div class="mt">
+        <span id="date-tag">The Kitchen Ledger</span>
+        <span class="sync">
+          <span class="dot" id="sync-dot"></span>
+          <span id="sync-text">synced</span>
+          <button class="gear" id="gear-btn" type="button" aria-label="Settings">⚙</button>
+        </span>
+      </div>
+      <h1>Mise en Place</h1>
+      <div class="sub">Yield is derived. Scale by target quantity. Save scaled versions as new recipes.</div>
+    </header>
+
+    <div id="view-list">
+      <nav class="tb">
+        <button class="t act" id="tab-rec" type="button">Recipes <span class="ct" id="rc">0</span></button>
+        <button class="t" id="tab-ing" type="button">Ingredients <span class="ct" id="ic">0</span></button>
+      </nav>
+      <div id="list-content"></div>
+      <button class="fab" id="fab" aria-label="Add">+</button>
+    </div>
+
+    <div id="view-ing-edit" class="hd"></div>
+    <div id="view-rec-edit" class="hd"></div>
+    <div id="view-rec-det" class="hd"></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // ============================================================
+  // STORAGE KEYS & STATE
+  // ============================================================
+  var URL_KEY = 'mep-script-url';
+  var TOKEN_KEY = 'mep-token';
+  var CACHE_KEY = 'mep-cache-v2';
+
+  var scriptUrl = '';
+  var token = '';
+  var state = { ingredients: [], recipes: [] };
+  var tab = 'recipes', view = 'list';
+  var edI = null, edR = null, vId = null, target = null;
+  var draft = null, pkOpen = false, pkQ = '';
+  var saveTimer = null;
+
+  // ============================================================
+  // UNITS & CONVERSIONS
+  // ============================================================
+  var UG = [
+    { l: 'Weight', u: [{v:'g',n:'g'},{v:'kg',n:'kg'}] },
+    { l: 'Volume', u: [{v:'ml',n:'ml'},{v:'l',n:'l'},{v:'cup',n:'cup'},{v:'tbsp',n:'tbsp'},{v:'tsp',n:'tsp'}] },
+    { l: 'Count',  u: [{v:'piece',n:'piece'},{v:'dozen',n:'dozen'}] },
+    { l: 'Imperial', u: [{v:'oz',n:'oz'},{v:'lb',n:'lb'}] }
+  ];
+  var TB = { g:{b:'g',f:1}, kg:{b:'g',f:1000}, ml:{b:'ml',f:1}, l:{b:'ml',f:1000}, cup:{b:'ml',f:240}, tbsp:{b:'ml',f:15}, tsp:{b:'ml',f:5}, piece:{b:'piece',f:1}, dozen:{b:'piece',f:12}, oz:{b:'g',f:28.3495}, lb:{b:'g',f:453.592} };
+
+  function toG(qty, unit, ing) {
+    var q = Number(qty) || 0;
+    if (unit === 'g') return q;
+    if (unit === 'kg') return q * 1000;
+    if (unit === 'ml') return q;
+    if (unit === 'l') return q * 1000;
+    if (unit === 'cup') return q * 240;
+    if (unit === 'tbsp') return q * 15;
+    if (unit === 'tsp') return q * 5;
+    if (unit === 'oz') return q * 28.3495;
+    if (unit === 'lb') return q * 453.592;
+    if (unit === 'piece') { var gp = Number(ing && ing.gramsPerPiece) || 0; return gp > 0 ? q * gp : null; }
+    if (unit === 'dozen') { var gp2 = Number(ing && ing.gramsPerPiece) || 0; return gp2 > 0 ? q * 12 * gp2 : null; }
+    return null;
+  }
+  function unitOpts(sel) { return UG.map(function(g) { return '<optgroup label="' + g.l + '">' + g.u.map(function(u) { return '<option value="' + u.v + '"' + (u.v === sel ? ' selected' : '') + '>' + u.n + '</option>'; }).join('') + '</optgroup>'; }).join(''); }
+  function compatU(pu) { var b = TB[pu] && TB[pu].b; var a = []; UG.forEach(function(g) { a = a.concat(g.u); }); return a.filter(function(u) { return TB[u.v] && TB[u.v].b === b; }); }
+  function isPieceUnit(u) { return u === 'piece' || u === 'dozen'; }
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function fmt$(n) { return '\u20B9' + (Number(n) || 0).toFixed(2); }
+  function fmtQ(n) { var v = Number(n) || 0; if (v === 0) return '0'; if (v < 0.01) return v.toFixed(4); if (v < 1) return v.toFixed(3); if (v < 10) return v.toFixed(2); return v.toFixed(1); }
+  function fmtG(g) { var v = Number(g) || 0; if (v >= 1000) return (v / 1000).toFixed(2) + ' kg'; if (v >= 10) return Math.round(v) + ' g'; return v.toFixed(1) + ' g'; }
+
+  function lineCost(ing, qty, unit) {
+    if (!ing || !(Number(qty) > 0)) return { cost: 0, ok: true };
+    var pq = Number(ing.purchaseQty) || 0; var price = Number(ing.price) || 0;
+    if (pq <= 0) return { cost: 0, ok: false };
+    var qGrams = toG(qty, unit, ing);
+    var pGrams = toG(pq, ing.purchaseUnit, ing);
+    if (qGrams == null || pGrams == null || pGrams <= 0) return { cost: 0, ok: false };
+    return { cost: qGrams * (price / pGrams), ok: true };
+  }
+  function lineYield(ing, qty, unit, wastagePct) {
+    var g = toG(qty, unit, ing);
+    if (g == null) return { g: 0, ok: false };
+    return { g: g * (1 - (Number(wastagePct) || 0) / 100), ok: true };
+  }
+  function compute(r, scale) {
+    scale = scale || 1;
+    var ic = 0, yg = 0;
+    var lines = r.items.map(function(it) {
+      var ing = state.ingredients.find(function(i) { return i.id === it.ingredientId; });
+      var sq = Number(it.qty) * scale;
+      var wp = (it.wastageOverride != null && it.wastageOverride !== '') ? Number(it.wastageOverride) : Number(r.defaultWastage) || 0;
+      var lc = lineCost(ing, sq, it.unit);
+      var ly = lineYield(ing, sq, it.unit, wp);
+      if (lc.ok) ic += lc.cost;
+      if (ly.ok) yg += ly.g;
+      return { item: it, ing: ing, scaledQty: sq, wastagePct: wp, cost: lc.cost, yieldG: ly.g, costOk: lc.ok, yieldOk: ly.ok };
+    });
+    var lb = (r.labourMode === 'flat') ? (Number(r.labourValue) || 0) * scale : ic * (Number(r.labourValue) || 0) / 100;
+    var ut = (r.utilityMode === 'flat') ? (Number(r.utilityValue) || 0) * scale : ic * (Number(r.utilityValue) || 0) / 100;
+    var pk = (r.packagingMode === 'flat') ? (Number(r.packagingValue) || 0) * scale : ic * (Number(r.packagingValue) || 0) / 100;
+    var dl = (r.deliveryMode === 'flat') ? (Number(r.deliveryValue) || 0) * scale : ic * (Number(r.deliveryValue) || 0) / 100;
+    var tc = ic + lb + ut + pk + dl;
+    var mg = Number(r.marginPercent) || 0;
+    var sp = mg > 0 ? tc * (1 + mg / 100) : 0;
+    return { lines: lines, ingredientCost: ic, labour: lb, utility: ut, packaging: pk, delivery: dl, totalCost: tc, marginPct: mg, sellingPrice: sp, yieldG: yg, costPerG: yg > 0 ? tc / yg : 0, sellingPerG: yg > 0 && mg > 0 ? sp / yg : 0 };
+  }
+  function toast(msg, isError) { var t = document.querySelector('.ts'); if (t) t.remove(); t = document.createElement('div'); t.className = 'ts' + (isError ? ' error' : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(function() { t.remove(); }, 2200); }
+
+  // ============================================================
+  // SYNC LAYER (Google Apps Script, token-gated)
+  // ============================================================
+  function setSync(status, text) {
+    var dot = document.getElementById('sync-dot');
+    var label = document.getElementById('sync-text');
+    if (!dot || !label) return;
+    dot.className = 'dot' + (status === 'idle' ? '' : ' ' + status);
+    var d = { idle: 'synced', syncing: 'saving\u2026', error: 'sync error', offline: 'offline' };
+    label.textContent = text || d[status] || status;
+  }
+
+  function callAPI(action, extra) {
+    if (!scriptUrl || !token) return Promise.reject(new Error('Not configured'));
+    var body = { action: action, token: token };
+    if (extra) for (var k in extra) body[k] = extra[k];
+    return fetch(scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    }).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(data) {
+      if (data.error) throw new Error(data.error);
+      return data;
+    });
+  }
+
+  function fetchInitial() {
+    return callAPI('load').then(function(data) {
+      state.ingredients = data.ingredients || [];
+      state.recipes = data.recipes || [];
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(state)); } catch (e) {}
+      setSync('idle');
+      return state;
+    });
+  }
+
+  function pushSave() {
+    setSync('syncing');
+    return callAPI('save', { data: state }).then(function() {
+      setSync('idle');
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(state)); } catch (e) {}
+    }).catch(function(err) {
+      console.error('Save failed:', err);
+      if (String(err.message).indexOf('unauthorized') >= 0) {
+        setSync('error', 'auth failed');
+        toast('Token check failed \u2014 open ⚙ to fix', true);
+      } else {
+        setSync('error', 'save failed');
+        toast('Save failed \u2014 will retry on next change', true);
+      }
+    });
+  }
+
+  function queueSave() {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(state)); } catch (e) {}
+    if (saveTimer) clearTimeout(saveTimer);
+    setSync('syncing', 'pending\u2026');
+    saveTimer = setTimeout(pushSave, 800);
+  }
+
+  // ============================================================
+  // ROUTER
+  // ============================================================
+  function show(name) {
+    view = name;
+    document.getElementById('view-setup').classList.toggle('hd', name !== 'setup');
+    document.getElementById('view-loading').classList.toggle('hd', name !== 'loading');
+    var inApp = ['list', 'ing', 'rec', 'det'].indexOf(name) >= 0;
+    document.getElementById('view-app').classList.toggle('hd', !inApp);
+    if (!inApp) return;
+    document.getElementById('view-list').classList.toggle('hd', name !== 'list');
+    document.getElementById('view-ing-edit').classList.toggle('hd', name !== 'ing');
+    document.getElementById('view-rec-edit').classList.toggle('hd', name !== 'rec');
+    document.getElementById('view-rec-det').classList.toggle('hd', name !== 'det');
+    if (name === 'list') rList();
+    else if (name === 'ing') rIng();
+    else if (name === 'rec') rRec();
+    else if (name === 'det') rDet();
+    document.getElementById('rc').textContent = state.recipes.length;
+    document.getElementById('ic').textContent = state.ingredients.length;
+  }
+  function rerender() { show(view); }
+
+  // ============================================================
+  // LIST VIEW
+  // ============================================================
+  function rList() {
+    document.getElementById('tab-rec').classList.toggle('act', tab === 'recipes');
+    document.getElementById('tab-ing').classList.toggle('act', tab === 'ingredients');
+    document.getElementById('list-content').innerHTML = tab === 'ingredients' ? rIngList() : rRecList();
+    bList();
+  }
+  function rIngList() {
+    var addBtn = '<div class="ab"><button class="b ba bb" data-act="add-ing" type="button">+ Add ingredient</button></div>';
+    if (state.ingredients.length === 0) {
+      return '<div class="sh"><h2>The Pantry</h2><span class="mt2">0 items</span></div>' + addBtn +
+        '<div class="em"><div class="ei">\u2205</div><h3>The pantry is empty</h3><p>Add the things you cook with \u2014 their purchase qty, unit, and price.</p></div>';
+    }
+    var sorted = state.ingredients.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+    var rows = sorted.map(function(ing) {
+      var pieceNote = isPieceUnit(ing.purchaseUnit) ? ' \u00b7 ' + (ing.gramsPerPiece || '?') + 'g/pc' : '';
+      return '<div class="c" data-act="edit-ing" data-id="' + ing.id + '"><div class="cr"><div class="nm">' + esc(ing.name) + '</div><div class="pr">' + fmt$(ing.price) + '</div></div><div class="mi">' + fmtQ(ing.purchaseQty) + ' ' + esc(ing.purchaseUnit) + ' \u00b7 ' + fmt$(ing.price / (ing.purchaseQty || 1)) + '/' + esc(ing.purchaseUnit) + pieceNote + '</div></div>';
+    }).join('');
+    return '<div class="sh"><h2>The Pantry</h2><span class="mt2">' + state.ingredients.length + ' ' + (state.ingredients.length === 1 ? 'item' : 'items') + '</span></div>' + addBtn + '<div class="ls">' + rows + '</div>';
+  }
+  function rRecList() {
+    var addBtn = '<div class="ab"><button class="b ba bb" data-act="add-rec" type="button">+ New recipe</button></div>';
+    if (state.recipes.length === 0) {
+      var hm = state.ingredients.length === 0 ? 'Add a few ingredients first.' : 'Pick ingredients, set wastage and overheads, and the calculator derives the yield.';
+      return '<div class="sh"><h2>The Book</h2><span class="mt2">0 recipes</span></div>' + addBtn +
+        '<div class="em"><div class="ei">\u2318</div><h3>No recipes yet</h3><p>' + hm + '</p></div>';
+    }
+    var rows = state.recipes.map(function(r) {
+      var c = compute(r, 1);
+      return '<div class="c" data-act="open-rec" data-id="' + r.id + '"><div class="cr"><div class="nm">' + esc(r.name) + '</div><div class="pr">' + fmt$(c.totalCost) + '</div></div><div class="mi">' + (c.yieldG > 0 ? 'yields ' + fmtG(c.yieldG) : 'yield ?') + ' \u00b7 ' + r.items.length + ' ing \u00b7 ' + (c.yieldG > 0 ? fmt$(c.costPerG * 1000) + '/kg' : '\u2014') + '</div></div>';
+    }).join('');
+    return '<div class="sh"><h2>The Book</h2><span class="mt2">' + state.recipes.length + ' ' + (state.recipes.length === 1 ? 'recipe' : 'recipes') + '</span></div>' + addBtn + '<div class="ls">' + rows + '</div>';
+  }
+  function bList() {
+    document.querySelectorAll('[data-act="add-ing"]').forEach(function(el) { el.onclick = function() { edI = null; show('ing'); }; });
+    document.querySelectorAll('[data-act="edit-ing"]').forEach(function(el) {
+      el.onclick = function() { var ing = state.ingredients.find(function(i) { return i.id === el.dataset.id; }); if (ing) { edI = ing; show('ing'); } };
+    });
+    document.querySelectorAll('[data-act="add-rec"]').forEach(function(el) { el.onclick = newRec; });
+    document.querySelectorAll('[data-act="open-rec"]').forEach(function(el) { el.onclick = function() { vId = el.dataset.id; target = null; show('det'); }; });
+  }
+  function newRec() {
+    if (state.ingredients.length === 0) { alert('Please add at least one ingredient first.'); tab = 'ingredients'; show('list'); return; }
+    edR = null; draft = null; pkOpen = false; pkQ = ''; show('rec');
+  }
+
+  // ============================================================
+  // INGREDIENT EDIT
+  // ============================================================
+  function rIng() {
+    var ing = edI; var isNew = !ing;
+    var cu = ing ? ing.purchaseUnit : 'g';
+    var showPW = isPieceUnit(cu);
+    document.getElementById('view-ing-edit').innerHTML =
+      '<div class="mw" id="ig-ov"><div class="md">' +
+      '<div class="mhd"><h3>' + (isNew ? 'New ingredient' : 'Edit ingredient') + '</h3><button class="mx" id="ig-x" type="button">\u00d7</button></div>' +
+      '<div class="mb">' +
+        '<div class="fl"><label>Name</label><input type="text" id="ig-n" value="' + esc(ing ? ing.name : '') + '" placeholder="e.g. All-purpose flour"></div>' +
+        '<div class="r3">' +
+          '<div><label>Quantity</label><input type="number" inputmode="decimal" step="any" id="ig-q" value="' + (ing ? ing.purchaseQty : '') + '" placeholder="500"></div>' +
+          '<div><label>Unit</label><select id="ig-u">' + unitOpts(cu) + '</select></div>' +
+          '<div><label>Price (\u20B9)</label><input type="number" inputmode="decimal" step="any" id="ig-p" value="' + (ing ? ing.price : '') + '" placeholder="50"></div>' +
+        '</div>' +
+        '<div class="hp">The price for that quantity \u2014 e.g. \u20B950 for 500g.</div>' +
+        '<div id="ig-gp-wrap" class="' + (showPW ? '' : 'hd') + '" style="margin-top: 16px;">' +
+          '<div class="fl"><label>Weight per piece (grams)</label><input type="number" inputmode="decimal" step="any" id="ig-gp" value="' + (ing && ing.gramsPerPiece != null ? ing.gramsPerPiece : '') + '" placeholder="50">' +
+          '<div class="hp">Needed so the calculator can convert pieces to grams when computing yield.</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="mf">' +
+        (!isNew ? '<button class="b bg bs" id="ig-d" type="button">Delete</button>' : '') +
+        '<button class="b bg" id="ig-c" type="button">Cancel</button>' +
+        '<button class="b bp" id="ig-s" type="button">Save</button>' +
+      '</div></div></div>';
+    var close = function() { show('list'); };
+    document.getElementById('ig-ov').onclick = function(e) { if (e.target.id === 'ig-ov') close(); };
+    document.getElementById('ig-x').onclick = close;
+    document.getElementById('ig-c').onclick = close;
+    document.getElementById('ig-u').onchange = function(e) {
+      document.getElementById('ig-gp-wrap').classList.toggle('hd', !isPieceUnit(e.target.value));
+    };
+    if (!isNew) document.getElementById('ig-d').onclick = function() {
+      var used = state.recipes.some(function(r) { return r.items.some(function(i) { return i.ingredientId === ing.id; }); });
+      if (used && !confirm('This ingredient is used in one or more recipes. Delete anyway?')) return;
+      if (!used && !confirm('Delete this ingredient?')) return;
+      state.ingredients = state.ingredients.filter(function(i) { return i.id !== ing.id; });
+      queueSave(); toast('Ingredient deleted'); close();
+    };
+    document.getElementById('ig-s').onclick = function() {
+      var n = document.getElementById('ig-n').value.trim();
+      var q = Number(document.getElementById('ig-q').value);
+      var u = document.getElementById('ig-u').value;
+      var p = Number(document.getElementById('ig-p').value);
+      if (!n) { alert('Please enter a name.'); return; }
+      if (!(q > 0)) { alert('Please enter a quantity greater than 0.'); return; }
+      if (!(p >= 0)) { alert('Please enter a valid price.'); return; }
+      var gp = null;
+      if (isPieceUnit(u)) {
+        gp = Number(document.getElementById('ig-gp').value);
+        if (!(gp > 0)) { alert('Please enter the weight per piece in grams.'); return; }
+      }
+      var pl = { id: (ing && ing.id) || uid(), name: n, purchaseQty: q, purchaseUnit: u, price: p, gramsPerPiece: gp };
+      var idx = state.ingredients.findIndex(function(i) { return i.id === pl.id; });
+      if (idx >= 0) state.ingredients[idx] = pl; else state.ingredients.push(pl);
+      queueSave(); toast(isNew ? 'Ingredient added' : 'Ingredient saved'); close();
+    };
+  }
+
+  // ============================================================
+  // RECIPE EDIT
+  // ============================================================
+  function getDraft() {
+    if (draft) return draft;
+    var r = edR;
+    draft = {
+      id: (r && r.id) || null, name: (r && r.name) || '',
+      defaultWastage: r ? r.defaultWastage : 5,
+      labourMode: (r && r.labourMode) || 'flat', labourValue: r ? r.labourValue : 0,
+      utilityMode: (r && r.utilityMode) || 'flat', utilityValue: r ? r.utilityValue : 0,
+      packagingMode: (r && r.packagingMode) || 'flat', packagingValue: r ? r.packagingValue : 0,
+      deliveryMode: (r && r.deliveryMode) || 'flat', deliveryValue: r ? r.deliveryValue : 0,
+      marginPercent: r ? r.marginPercent : 0,
+      items: r ? r.items.map(function(i) { return { id: i.id, ingredientId: i.ingredientId, qty: i.qty, unit: i.unit, wastageOverride: i.wastageOverride == null ? '' : i.wastageOverride }; }) : []
+    };
+    return draft;
+  }
+  function syncDraft() {
+    var d = getDraft();
+    var g = function(id) { return document.getElementById(id); };
+    ['name','defaultWastage','labourMode','labourValue','utilityMode','utilityValue','packagingMode','packagingValue','deliveryMode','deliveryValue'].forEach(function(k) {
+      var el = g('rf-' + k); if (el) d[k] = el.value;
+    });
+    var mg = g('rf-margin'); if (mg) d.marginPercent = mg.value;
+    d.items.forEach(function(it) {
+      var q = g('it-q-' + it.id), u = g('it-u-' + it.id), w = g('it-w-' + it.id);
+      if (q) it.qty = q.value; if (u) it.unit = u.value; if (w) it.wastageOverride = w.value;
+    });
+  }
+  function draftYield(d) {
+    var yg = 0, ok = true;
+    d.items.forEach(function(it) {
+      var ing = state.ingredients.find(function(i) { return i.id === it.ingredientId; }); if (!ing) return;
+      var wp = (it.wastageOverride != null && it.wastageOverride !== '') ? Number(it.wastageOverride) : Number(d.defaultWastage) || 0;
+      var ly = lineYield(ing, Number(it.qty) || 0, it.unit, wp);
+      if (ly.ok) yg += ly.g; else ok = false;
+    });
+    return { g: yg, ok: ok };
+  }
+  function rRec() {
+    var d = getDraft(); var isNew = !d.id;
+    var items = d.items.map(function(it) {
+      var ing = state.ingredients.find(function(i) { return i.id === it.ingredientId; }); if (!ing) return '';
+      var units = compatU(ing.purchaseUnit);
+      var uh = units.map(function(u) { return '<option value="' + u.v + '"' + (u.v === it.unit ? ' selected' : '') + '>' + u.n + '</option>'; }).join('');
+      return '<div class="ir"><div class="ih"><div class="in2">' + esc(ing.name) + '</div><button class="ix" data-act="rm-it" data-id="' + it.id + '" type="button">\u00d7</button></div><div class="ifg"><div><label>Qty</label><input type="number" inputmode="decimal" step="any" id="it-q-' + it.id + '" value="' + (it.qty == null ? '' : it.qty) + '" placeholder="0"></div><div><label>Unit</label><select id="it-u-' + it.id + '">' + uh + '</select></div><div><label>Waste %</label><input type="number" inputmode="decimal" step="any" id="it-w-' + it.id + '" value="' + (it.wastageOverride == null ? '' : it.wastageOverride) + '" placeholder="' + d.defaultWastage + '"></div></div></div>';
+    }).join('');
+    var picker = pkOpen ? rPicker(d) : '';
+    var dy = draftYield(d);
+    var yieldEst = d.items.length > 0 ? '<div class="est"><span>Estimated yield (live)</span><span class="v">' + (dy.g > 0 ? fmtG(dy.g) : '\u2014') + (!dy.ok ? ' (set weight-per-piece)' : '') + '</span></div>' : '';
+
+    function ovh(label, modeKey, valKey, modeVal, valVal) {
+      return '<div class="r2"><div><label>' + label + '</label><select id="rf-' + modeKey + '"><option value="flat"' + (modeVal === 'flat' ? ' selected' : '') + '>Flat \u20B9 per recipe</option><option value="percent"' + (modeVal === 'percent' ? ' selected' : '') + '>% of ingredient cost</option></select></div><div><label>' + (modeVal === 'flat' ? 'Amount (\u20B9)' : 'Percent (%)') + '</label><input type="number" inputmode="decimal" step="any" id="rf-' + valKey + '" value="' + valVal + '" placeholder="0"></div></div>';
+    }
+
+    document.getElementById('view-rec-edit').innerHTML =
+      '<button class="bk" id="rf-bk" type="button">\u2190 Back</button>' +
+      '<h2 class="et">' + (isNew ? 'New recipe' : 'Edit recipe') + '</h2>' +
+      '<div class="fl"><label>Recipe name</label><input type="text" id="rf-name" value="' + esc(d.name) + '" placeholder="e.g. Chocolate chip cookies"></div>' +
+      '<div class="fl"><label>Default wastage %</label><input type="number" inputmode="decimal" step="any" id="rf-defaultWastage" value="' + d.defaultWastage + '" placeholder="5"><div class="hp">Process loss \u2014 reduces final yield, not ingredient cost. Per-ingredient overrides below.</div></div>' +
+      '<h3 class="dv">Overheads <span class="ic2">ALL OPTIONAL</span></h3>' +
+      ovh('Labour', 'labourMode', 'labourValue', d.labourMode, d.labourValue) +
+      ovh('Utilities', 'utilityMode', 'utilityValue', d.utilityMode, d.utilityValue) +
+      ovh('Packaging', 'packagingMode', 'packagingValue', d.packagingMode, d.packagingValue) +
+      ovh('Delivery', 'deliveryMode', 'deliveryValue', d.deliveryMode, d.deliveryValue) +
+      '<div class="fl"><label>Profit margin %</label><input type="number" inputmode="decimal" step="any" id="rf-margin" value="' + d.marginPercent + '" placeholder="0"><div class="hp">Optional. Leave at 0 to see only the cost price.</div></div>' +
+      '<h3 class="dv">Ingredients <span class="ic2">' + d.items.length + ' ADDED</span></h3>' +
+      '<div>' + items + '</div>' +
+      (!pkOpen ? '<button class="b bg bb" id="rf-sp" style="margin-top: 12px;" type="button">+ Add ingredient from pantry</button>' : picker) +
+      yieldEst +
+      '<div class="ac">' +
+        (!isNew ? '<button class="b bg bs" id="rf-del" type="button">Delete</button>' : '') +
+        '<button class="b bg" id="rf-cn" type="button">Cancel</button>' +
+        '<button class="b bp" id="rf-sv" type="button">Save</button>' +
+      '</div>';
+    bRec();
+  }
+  function rPicker(d) {
+    var added = {}; d.items.forEach(function(i) { added[i.ingredientId] = true; });
+    var f = state.ingredients.filter(function(i) { return i.name.toLowerCase().indexOf(pkQ.toLowerCase()) >= 0; }).sort(function(a, b) { return a.name.localeCompare(b.name); });
+    var rows = f.length === 0 ? '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-style:italic;">No matching ingredients.</div>' : f.map(function(ing) {
+      var ad = added[ing.id]; var pw = isPieceUnit(ing.purchaseUnit) && !(ing.gramsPerPiece > 0) ? ' \u26A0' : '';
+      return '<div class="pir' + (ad ? ' ad' : '') + '"' + (ad ? '' : ' data-act="pick" data-id="' + ing.id + '"') + '><div><div class="pn">' + esc(ing.name) + pw + '</div><div class="pm">' + fmt$(ing.price) + ' per ' + fmtQ(ing.purchaseQty) + ' ' + esc(ing.purchaseUnit) + '</div></div>' + (ad ? '<span class="pi2">added</span>' : '') + '</div>';
+    }).join('');
+    return '<div style="margin-top:12px;"><div style="margin-bottom:8px;"><input type="text" id="rf-ps" value="' + esc(pkQ) + '" placeholder="Search pantry\u2026"></div><div class="pi" id="rf-pl">' + rows + '</div><button class="b bg bs bb" id="rf-hp" style="margin-top: 8px;" type="button">Done adding</button></div>';
+  }
+  function bRec() {
+    var d = getDraft();
+    document.getElementById('rf-bk').onclick = function() { if (confirm('Discard changes?')) { draft = null; show('list'); } };
+    document.getElementById('rf-cn').onclick = function() { draft = null; show('list'); };
+    if (document.getElementById('rf-del')) document.getElementById('rf-del').onclick = function() {
+      if (!confirm('Delete this recipe?')) return;
+      state.recipes = state.recipes.filter(function(r) { return r.id !== d.id; });
+      queueSave(); draft = null; toast('Recipe deleted'); show('list');
+    };
+    ['labour','utility','packaging','delivery'].forEach(function(k) {
+      var el = document.getElementById('rf-' + k + 'Mode');
+      if (el) el.onchange = function() { syncDraft(); rerender(); };
+    });
+    document.querySelectorAll('[data-act="rm-it"]').forEach(function(el) { el.onclick = function() { syncDraft(); d.items = d.items.filter(function(i) { return i.id !== el.dataset.id; }); rerender(); }; });
+    if (document.getElementById('rf-sp')) document.getElementById('rf-sp').onclick = function() { syncDraft(); pkOpen = true; pkQ = ''; rerender(); };
+    if (document.getElementById('rf-hp')) document.getElementById('rf-hp').onclick = function() { syncDraft(); pkOpen = false; rerender(); };
+    if (document.getElementById('rf-ps')) document.getElementById('rf-ps').oninput = function(e) {
+      pkQ = e.target.value;
+      var l = document.getElementById('rf-pl'); if (!l) return;
+      var added = {}; d.items.forEach(function(i) { added[i.ingredientId] = true; });
+      var f = state.ingredients.filter(function(i) { return i.name.toLowerCase().indexOf(pkQ.toLowerCase()) >= 0; }).sort(function(a, b) { return a.name.localeCompare(b.name); });
+      l.innerHTML = f.length === 0 ? '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-style:italic;">No matching ingredients.</div>' : f.map(function(ing) {
+        var ad = added[ing.id]; var pw = isPieceUnit(ing.purchaseUnit) && !(ing.gramsPerPiece > 0) ? ' \u26A0' : '';
+        return '<div class="pir' + (ad ? ' ad' : '') + '"' + (ad ? '' : ' data-act="pick" data-id="' + ing.id + '"') + '><div><div class="pn">' + esc(ing.name) + pw + '</div><div class="pm">' + fmt$(ing.price) + ' per ' + fmtQ(ing.purchaseQty) + ' ' + esc(ing.purchaseUnit) + '</div></div>' + (ad ? '<span class="pi2">added</span>' : '') + '</div>';
+      }).join('');
+      l.querySelectorAll('[data-act="pick"]').forEach(function(el) { el.onclick = function() { pickIng(el.dataset.id); }; });
+    };
+    document.querySelectorAll('[data-act="pick"]').forEach(function(el) { el.onclick = function() { pickIng(el.dataset.id); }; });
+    document.getElementById('rf-sv').onclick = function() {
+      syncDraft();
+      if (!d.name.trim()) { alert('Please enter a recipe name.'); return; }
+      if (d.items.length === 0) { alert('Please add at least one ingredient.'); return; }
+      var bad = d.items.find(function(i) { return !(Number(i.qty) > 0); });
+      if (bad) { alert('Every ingredient needs a quantity greater than 0.'); return; }
+      var pl = { id: d.id || uid(), name: d.name.trim(), defaultWastage: Number(d.defaultWastage) || 0, labourMode: d.labourMode, labourValue: Number(d.labourValue) || 0, utilityMode: d.utilityMode, utilityValue: Number(d.utilityValue) || 0, packagingMode: d.packagingMode, packagingValue: Number(d.packagingValue) || 0, deliveryMode: d.deliveryMode, deliveryValue: Number(d.deliveryValue) || 0, marginPercent: Number(d.marginPercent) || 0, items: d.items.map(function(i) { return { id: i.id, ingredientId: i.ingredientId, qty: Number(i.qty), unit: i.unit, wastageOverride: (i.wastageOverride === '' || i.wastageOverride == null) ? null : Number(i.wastageOverride) }; }) };
+      var idx = state.recipes.findIndex(function(r) { return r.id === pl.id; });
+      if (idx >= 0) state.recipes[idx] = pl; else state.recipes.push(pl);
+      queueSave(); draft = null; pkOpen = false; toast('Recipe saved'); vId = pl.id; target = null; show('det');
+    };
+  }
+  function pickIng(id) {
+    syncDraft();
+    var d = getDraft();
+    var ing = state.ingredients.find(function(i) { return i.id === id; }); if (!ing) return;
+    if (d.items.some(function(i) { return i.ingredientId === id; })) return;
+    d.items.push({ id: uid(), ingredientId: id, qty: '', unit: ing.purchaseUnit, wastageOverride: '' });
+    pkQ = ''; rerender();
+  }
+
+  // ============================================================
+  // RECIPE DETAIL
+  // ============================================================
+  function rDet() {
+    var r = state.recipes.find(function(x) { return x.id === vId; }); if (!r) { show('list'); return; }
+    var base = compute(r, 1);
+    var scale = 1;
+    if (target != null && base.yieldG > 0) scale = target / base.yieldG;
+    var c = compute(r, scale);
+    var scaled = scale !== 1;
+
+    var lines = c.lines.map(function(ln) {
+      var qDisp = fmtQ(ln.scaledQty) + ' ' + esc(ln.item.unit);
+      var gDisp = ln.yieldOk ? ' (\u2248 ' + fmtG(toG(ln.scaledQty, ln.item.unit, ln.ing) || 0) + ')' : '';
+      return '<div class="rw"><div><div class="nm">' + esc((ln.ing && ln.ing.name) || 'Unknown') + '</div><div class="qy">' + qDisp + gDisp + (ln.wastagePct > 0 ? ' \u00b7 ' + ln.wastagePct + '% waste' : '') + '</div></div><div class="am">' + (ln.costOk ? fmt$(ln.cost) : '\u2014') + '</div></div>';
+    }).join('');
+
+    var ovh = '';
+    if (c.labour > 0) ovh += '<div class="rw idt"><div class="nm">+ Labour <span class="pi2">' + (r.labourMode === 'flat' ? '\u20B9' + r.labourValue + (scaled ? ' \u00d7' + scale.toFixed(2) : '') : r.labourValue + '%') + '</span></div><div class="am">' + fmt$(c.labour) + '</div></div>';
+    if (c.utility > 0) ovh += '<div class="rw idt"><div class="nm">+ Utilities <span class="pi2">' + (r.utilityMode === 'flat' ? '\u20B9' + r.utilityValue + (scaled ? ' \u00d7' + scale.toFixed(2) : '') : r.utilityValue + '%') + '</span></div><div class="am">' + fmt$(c.utility) + '</div></div>';
+    if (c.packaging > 0) ovh += '<div class="rw idt"><div class="nm">+ Packaging <span class="pi2">' + (r.packagingMode === 'flat' ? '\u20B9' + r.packagingValue + (scaled ? ' \u00d7' + scale.toFixed(2) : '') : r.packagingValue + '%') + '</span></div><div class="am">' + fmt$(c.packaging) + '</div></div>';
+    if (c.delivery > 0) ovh += '<div class="rw idt"><div class="nm">+ Delivery <span class="pi2">' + (r.deliveryMode === 'flat' ? '\u20B9' + r.deliveryValue + (scaled ? ' \u00d7' + scale.toFixed(2) : '') : r.deliveryValue + '%') + '</span></div><div class="am">' + fmt$(c.delivery) + '</div></div>';
+    var anyOvh = c.labour + c.utility + c.packaging + c.delivery > 0;
+    var sellRow = c.marginPct > 0 ? '<div class="rw sl"><div class="nm">Suggested selling price <span class="pi2 lt">+' + c.marginPct + '% margin</span></div><div class="am">' + fmt$(c.sellingPrice) + '</div></div>' : '';
+    var sellStrip = c.marginPct > 0 && c.yieldG > 0 ? '<div class="ss"><span class="lb">Sell at</span><span class="vl">' + fmt$(c.sellingPerG * 1000) + ' / kg</span></div>' : '';
+    var targetInputValue = target != null ? String(target) : (base.yieldG > 0 ? Math.round(base.yieldG).toString() : '');
+
+    document.getElementById('view-rec-det').innerHTML =
+      '<button class="bk" id="dv-bk" type="button">\u2190 All recipes</button>' +
+      '<div class="hr2"><div class="tg">Recipe N\u00ba ' + r.id.slice(0, 4).toUpperCase() + '</div><h2>' + esc(r.name) + '</h2></div>' +
+      '<div class="yi"><div><div class="tg">' + (scaled ? 'yields (scaled)' : 'derived yield') + '</div><div class="yv">' + (c.yieldG > 0 ? fmtG(c.yieldG) : '\u2014') + '</div></div><div style="text-align:right;"><div class="tg">cost / kg</div><div class="yv">' + (c.yieldG > 0 ? fmt$(c.costPerG * 1000) : '\u2014') + '</div></div></div>' +
+      '<div class="sc">' +
+        '<label>Scale to target</label>' +
+        '<div class="sci"><input type="number" inputmode="decimal" step="any" id="dv-tg" value="' + targetInputValue + '" placeholder="amount"><select id="dv-tu"><option value="g" selected>g</option><option value="kg">kg</option></select></div>' +
+        '<div class="qb">' +
+          (base.yieldG > 0 ? '<button class="qbn' + (!scaled ? ' act' : '') + '" data-tg="' + Math.round(base.yieldG) + '" type="button">base</button>' : '') +
+          '<button class="qbn" data-tg="500" type="button">500 g</button>' +
+          '<button class="qbn" data-tg="1000" type="button">1 kg</button>' +
+          '<button class="qbn" data-tg="2000" type="button">2 kg</button>' +
+          '<button class="qbn" data-tg="5000" type="button">5 kg</button>' +
+        '</div>' +
+        (scaled ? '<div class="sb"><button class="b bg bs" id="dv-rs" type="button">Reset</button><button class="b ba bs" id="dv-sv" type="button">Save as new</button></div>' : '') +
+      '</div>' +
+      '<div class="sh" style="margin-top:18px;"><h2 style="font-size:18px;">Ingredients</h2><span class="mt2">' + (scaled ? 'scaled \u00d7' + scale.toFixed(2) : 'as written') + '</span></div>' +
+      '<div class="ct2">' + lines + (anyOvh ? '<div class="rw sbt"><div class="nm">Ingredient subtotal</div><div class="am">' + fmt$(c.ingredientCost) + '</div></div>' : '') + ovh +
+        '<div class="rw tot"><div class="nm">' + (anyOvh ? 'Total cost' : 'Cost price') + '</div><div class="am">' + fmt$(c.totalCost) + '</div></div>' + sellRow + '</div>' + sellStrip +
+      '<div class="ac"><button class="b bg" id="dv-ed" type="button">Edit</button><button class="b bp" id="dv-dn" type="button">Done</button></div>';
+
+    document.getElementById('dv-bk').onclick = function() { show('list'); };
+    document.getElementById('dv-dn').onclick = function() { show('list'); };
+    document.getElementById('dv-ed').onclick = function() { edR = r; draft = null; pkOpen = false; show('rec'); };
+    document.getElementById('dv-tg').onchange = function(e) {
+      var v = Number(e.target.value) || 0;
+      var u = document.getElementById('dv-tu').value;
+      if (u === 'kg') v *= 1000;
+      if (v <= 0) { target = null; rerender(); return; }
+      target = v; rerender();
+    };
+    document.getElementById('dv-tu').onchange = function() { document.getElementById('dv-tg').onchange({ target: document.getElementById('dv-tg') }); };
+    document.querySelectorAll('[data-tg]').forEach(function(el) { el.onclick = function() { target = Number(el.dataset.tg); rerender(); }; });
+    if (document.getElementById('dv-rs')) document.getElementById('dv-rs').onclick = function() { target = null; rerender(); };
+    if (document.getElementById('dv-sv')) document.getElementById('dv-sv').onclick = function() {
+      var defaultName = r.name + ' (' + fmtG(c.yieldG) + ')';
+      var newName = prompt('Name for the new recipe:', defaultName);
+      if (!newName || !newName.trim()) return;
+      var nr = {
+        id: uid(), name: newName.trim(), defaultWastage: r.defaultWastage,
+        labourMode: r.labourMode, labourValue: r.labourMode === 'flat' ? r.labourValue * scale : r.labourValue,
+        utilityMode: r.utilityMode, utilityValue: r.utilityMode === 'flat' ? r.utilityValue * scale : r.utilityValue,
+        packagingMode: r.packagingMode, packagingValue: r.packagingMode === 'flat' ? r.packagingValue * scale : r.packagingValue,
+        deliveryMode: r.deliveryMode, deliveryValue: r.deliveryMode === 'flat' ? r.deliveryValue * scale : r.deliveryValue,
+        marginPercent: r.marginPercent,
+        items: r.items.map(function(it) { return { id: uid(), ingredientId: it.ingredientId, qty: Number(it.qty) * scale, unit: it.unit, wastageOverride: it.wastageOverride }; })
+      };
+      state.recipes.push(nr);
+      queueSave(); toast('Saved as new recipe');
+      vId = nr.id; target = null; rerender();
+    };
+  }
+
+  // ============================================================
+  // BOOT
+  // ============================================================
+  document.getElementById('date-tag').textContent = 'The Kitchen Ledger \u00b7 ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  document.getElementById('gear-btn').onclick = function() {
+    document.getElementById('su-url').value = scriptUrl;
+    document.getElementById('su-token').value = token;
+    show('setup');
+  };
+
+  document.getElementById('tab-rec').onclick = function() { tab = 'recipes'; rerender(); };
+  document.getElementById('tab-ing').onclick = function() { tab = 'ingredients'; rerender(); };
+  document.getElementById('fab').onclick = function() {
+    if (tab === 'ingredients') { edI = null; show('ing'); }
+    else newRec();
+  };
+
+  document.getElementById('su-go').onclick = function() {
+    var u = document.getElementById('su-url').value.trim();
+    var t = document.getElementById('su-token').value.trim();
+    if (!u || u.indexOf('script.google.com') < 0) { alert('Please paste a valid Apps Script URL (starts with https://script.google.com/).'); return; }
+    if (!t || t.length < 8) { alert('Please paste your token (must be at least 8 characters).'); return; }
+    scriptUrl = u; token = t;
+    try { localStorage.setItem(URL_KEY, u); localStorage.setItem(TOKEN_KEY, t); } catch (e) {}
+    show('loading');
+    fetchInitial().then(function() {
+      show('list'); toast('Connected!');
+    }).catch(function(err) {
+      var msg = String(err.message);
+      if (msg.indexOf('unauthorized') >= 0) toast('Token check failed \u2014 check the value and try again', true);
+      else toast('Could not connect: ' + msg, true);
+      show('setup');
+    });
+  };
+
+  scriptUrl = localStorage.getItem(URL_KEY) || '';
+  token = localStorage.getItem(TOKEN_KEY) || '';
+  if (!scriptUrl || !token) {
+    show('setup');
+  } else {
+    try {
+      var cached = localStorage.getItem(CACHE_KEY);
+      if (cached) { state = JSON.parse(cached); show('list'); }
+      else { show('loading'); }
+    } catch (e) { show('loading'); }
+    fetchInitial().then(function() {
+      if (view === 'loading') show('list');
+      else rerender();
+    }).catch(function(err) {
+      console.error(err);
+      var msg = String(err.message);
+      if (msg.indexOf('unauthorized') >= 0) {
+        toast('Token check failed \u2014 open ⚙ to fix', true);
+        setSync('error', 'auth failed');
+      } else {
+        setSync('error', 'offline');
+        toast('Offline \u2014 using cached data', true);
+      }
+      if (view === 'loading') show('list');
+    });
+  }
+})();
+</script>
+</body>
+</html>
